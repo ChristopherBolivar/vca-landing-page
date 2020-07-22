@@ -129,6 +129,7 @@
 		<?php wp_footer(); ?>
 		<script>
 			let nextPrev = (event,direc) =>{
+			let validated = true
 			//Grabbing all the inputs, tabs, current tab, and number of inputs within the tab
 			let inputs = Array.from(document.querySelectorAll('.wpcf7-form-control'))
 			let tabs = Array.from(document.querySelectorAll('.tab'))
@@ -136,16 +137,58 @@
 				if(tab.classList.length <= 1){	
 					return tab
 				}
-			})
-			let currentTabIndex = Number(currentTab[0].id.slice(4))
-			let numberOfInputs = Array.from(currentTab[0].childNodes).filter((child,i)=>{
+			})[0]
+			let currentTabIndex = Number(currentTab.id.slice(4))
+			let numberOfInputs = Array.from(currentTab.childNodes).filter((child,i)=>{
 				if(child.className === 'form-group'){
 					return child
 				}
 			})
-			console.log(numberOfInputs.length)
+			let requiredInputs = ''
+			let filteredInputs = ''
 
-			if(direc === 'next')
+			if(direc === 'next'){
+				filteredInputs = inputs.filter((input,i)=>{
+					if(Number(input.parentNode.parentNode.parentNode.id.slice(4)) === currentTabIndex & input.defaultValue != 'Submit'){
+						return input
+					}
+				})
+
+				let requiredInputs = filteredInputs.filter((item,i)=>{
+					if(item.attributes[5] && item.attributes[5].nodeValue === 'true'){
+						return item
+					}
+				})
+				//validate required inputs
+				requiredInputs.forEach((input,i)=>{
+					console.log(input.attributes[0].nodeValue)
+					if(input.value.split("").length === 0){
+						input.style.backgroundColor = "red"
+						input.style.color = 'white !important'
+						input.classList.add('form-validator')
+						input.placeholder = 'Please do not leave this field empty'
+						validated = false
+					}
+					if(input.attributes[0].nodeValue === 'tel' && input.value.split("").length < 10 ){
+						input.value = ""
+						input.style.backgroundColor = "red"
+						input.style.color = 'white !important'
+						input.classList.add('form-validator')
+						input.placeholder = 'Please provide a valid 10 digit phone number'
+						validated = false
+					}
+					if(input.attributes[0].nodeValue === 'email'){
+						console.log(input)
+					}
+			
+				})
+				
+				if(validated){
+					currentTab.classList.add('deactive')
+					currentTab.nextElementSibling.classList.remove('deactive')
+				}
+			}
+			//end if for 'next'
 			}
 
 
